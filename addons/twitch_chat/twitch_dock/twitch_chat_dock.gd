@@ -4,6 +4,11 @@ extends PanelContainer
 var plugin_path : String = ProjectSettings.globalize_path("user://").replace("app_userdata/"+ProjectSettings.get_setting('application/config/name')+"/","twitch_chat")+"/"
 var token_file : String = "channel.dat"
 
+class Person:
+	
+	static func add_person():
+		"I am a person"
+
 onready var login_control : Control = $Login
 onready var chat_container : ScrollContainer = $ChatContainer/ChatScroller
 onready var chat : VBoxContainer = chat_container.get_node("Chat")
@@ -29,6 +34,8 @@ var autoscroll : bool = true
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	if "name" in UserMessage:
+		print("yes")
 	randomize()
 	_connect_signals()
 	_load_icons()
@@ -37,7 +44,8 @@ func _ready():
 	fields.show()
 	loading.hide()
 	logged = false
-	
+	set_name("Twitch Chat")
+	username_lbl.set_text("")
 	load_data()
 	if channel!="" and token!="" : 
 		connect_to_url()
@@ -121,7 +129,7 @@ func _on_data():
 		if log_successful(data_received) : 
 			logged = true
 			login_control.hide()
-			set_name("TwitchChat #%s"%channel)
+			set_name("Twitch Chat #%s"%channel)
 			return
 	if ping_received(data_received) : 
 		send_pong()
@@ -133,7 +141,6 @@ func _on_data():
 		welcome_label.set("custom_colors/font_color", Color.dimgray)
 		welcome_label.set_text("Welcome to Godot Engine's Twitch Chat!")
 	elif PART_message(data_received):
-		print(data_received)
 		_client.disconnect_from_host()
 		return
 	if PRIVMSG_message(data_received): deserialize_message(data_received)
@@ -218,13 +225,13 @@ func save_data(_channel : String, _user : String, _token : String):
 	file.store_line(_channel+";"+_user+";"+_token)
 
 func _on_chat_pressed():
-	send_message(message_box.get_text())
+	send_message(message_box.get_text()+"\r\n")
 
 func _on_text_entered(message : String):
-	send_message(message)
+	send_message(message+"\r\n")
 
 func send_message(message : String = ""):
-	_client.get_peer(1).put_packet(("PRIVMSG #%s %s"%[channel.to_lower(), (message if message=="" else ":"+message)]).to_utf8())
+	_client.get_peer(1).put_packet(("PRIVMSG #%s :%s"%[channel.to_lower(), message]).to_utf8())
 	append_chat_message(user, message)
 	message_box.clear()
 
