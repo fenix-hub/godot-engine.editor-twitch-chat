@@ -49,12 +49,12 @@ func _ready():
 	load_data()
 	if channel!="" and token!="" : 
 		connect_to_url()
-		fill_fields()
+		fill_fields(channel, user, token)
 
-func fill_fields():
-	$Login/Fields/HBoxContainer/Name.set_text(channel)
-	$Login/Fields/UserInfo/User.set_text(user)
-	$Login/Fields/HBoxContainer2/Token.set_text(token)
+func fill_fields(_channel : String = "", _user : String = "", _token : String = ""):
+	$Login/Fields/HBoxContainer/Name.set_text(_channel)
+	$Login/Fields/UserInfo/User.set_text(_user)
+	$Login/Fields/HBoxContainer2/Token.set_text(_token)
 
 func _load_icons():
 	menu.set_button_icon(get_theme().get_icon("GDScript","EditorIcons"))
@@ -78,6 +78,7 @@ func _on_streamer_check_toggled(toggled : bool):
 func _on_index_pressed(index : int):
 	match index:
 		0: disconnect_from_channel()
+		1: delete_data()
 
 func _open_url():
 	OS.shell_open("https://www.twitchapps.com/tmi/")
@@ -125,16 +126,15 @@ func _connected(proto = ""):
 
 func _on_data():
 	var data_received : String = _client.get_peer(1).get_packet().get_string_from_utf8()
-	if not logged : 
-		if log_successful(data_received) : 
-			logged = true
-			login_control.hide()
-			set_name("Twitch Chat #%s"%channel)
-			return
 	if ping_received(data_received) : 
 		send_pong()
 		return
 	if JOIN_message(data_received):
+		logged = true
+		login_control.hide()
+		
+		set_name("Twitch Chat #%s"%channel)
+		
 		var welcome_label : Label = Label.new()
 		chat.add_child(welcome_label)
 		welcome_label.align = Label.ALIGN_CENTER
@@ -143,7 +143,14 @@ func _on_data():
 	elif PART_message(data_received):
 		_client.disconnect_from_host()
 		return
+	if CAP_ACK_message(data_received): 
+		if not logged: 
+			_client.disconnect_from_host()
+			printerr("Something went wrong: wrong channel name.")
 	if PRIVMSG_message(data_received): deserialize_message(data_received)
+
+func CAP_ACK_message(data_received : String) -> bool:
+	return ("CAP * ACK" in data_received)
 
 func deserialize_message(data : String):
 	var data_separated : Array = data.split("PRIVMSG")
@@ -184,13 +191,13 @@ func _process(delta):
 	_client.poll()
 
 func ping_received(data : String):
-	return (data == "PING :tmi.twitch.tv")
+	return ("PING :tmi.twitch.tv" in data)
 
 func print_message(user : String, message : String):
 	pass
 
 func log_successful(data : String):
-	return data.begins_with(":tmi.twitch.tv 001")
+	return data.begins_with("%s:tmi.twitch.tv JOIN"%user)
 
 func JOIN_message(data : String):
 	return ("tmi.twitch.tv JOIN" in data)
@@ -224,6 +231,17 @@ func save_data(_channel : String, _user : String, _token : String):
 	file.open_encrypted_with_pass(plugin_path+token_file, File.WRITE, OS.get_unique_id())
 	file.store_line(_channel+";"+_user+";"+_token)
 
+func delete_data():
+	var directory : Directory = Directory.new()
+	var file : File = File.new()
+	if directory.dir_exists(plugin_path):
+		if directory.file_exists(plugin_path+token_file):
+			directory.remove(plugin_path+token_file)
+	disconnect_from_channel()
+	_client.disconnect_from_host()
+	_closed()
+	fill_fields()
+
 func _on_chat_pressed():
 	send_message(message_box.get_text()+"\r\n")
 
@@ -239,7 +257,8 @@ func send_request(request : String):
 	_client.get_peer(1).put_packet(("CAP REQ :%s"%request).to_utf8())
 
 func send_part():
-	_client.get_peer(1).put_packet(("PART #%s"%channel).to_utf8())
+	return _client.get_peer(1).put_packet(("PART #%s"%channel).to_utf8())
 
 func disconnect_from_channel():
-	send_part()
+	logged = false
+	return send_part()
