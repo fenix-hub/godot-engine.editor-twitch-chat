@@ -1,6 +1,10 @@
-[gd_scene load_steps=2 format=2]
+[gd_scene load_steps=4 format=2]
 
 [ext_resource path="res://addons/twitch_chat/user_message/user_message.gd" type="Script" id=1]
+
+[sub_resource type="StyleBoxEmpty" id=2]
+
+[sub_resource type="StyleBoxEmpty" id=1]
 
 [node name="UserMessage" type="HBoxContainer"]
 anchor_right = 1.0
@@ -8,31 +12,29 @@ anchor_bottom = 1.0
 focus_mode = 2
 size_flags_horizontal = 3
 custom_constants/separation = 0
-alignment = 2
 script = ExtResource( 1 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Name" type="Label" parent="."]
-margin_top = 293.0
-margin_right = 28.0
-margin_bottom = 307.0
-custom_colors/font_color = Color( 1, 1, 1, 1 )
-text = "user"
+[node name="VSeparator" type="VSeparator" parent="."]
+margin_right = 4.0
+margin_bottom = 600.0
+custom_styles/separator = SubResource( 2 )
 
-[node name="delimiter" type="Label" parent="."]
-margin_left = 28.0
-margin_top = 293.0
-margin_right = 32.0
-margin_bottom = 307.0
-text = ":"
-
-[node name="Message" type="Label" parent="."]
-margin_left = 32.0
-margin_top = 293.0
-margin_right = 1024.0
-margin_bottom = 307.0
+[node name="Message" type="RichTextLabel" parent="."]
+margin_left = 4.0
+margin_right = 1020.0
+margin_bottom = 600.0
 size_flags_horizontal = 3
-text = "message"
-autowrap = true
+size_flags_vertical = 3
+custom_styles/normal = SubResource( 1 )
+bbcode_enabled = true
+fit_content_height = true
+scroll_active = false
+
+[node name="VSeparator2" type="VSeparator" parent="."]
+margin_left = 1020.0
+margin_right = 1024.0
+margin_bottom = 600.0
+custom_styles/separator = SubResource( 2 )
