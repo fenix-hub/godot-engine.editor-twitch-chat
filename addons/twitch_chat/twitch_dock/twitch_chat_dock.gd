@@ -4,11 +4,6 @@ extends PanelContainer
 var plugin_path : String = ProjectSettings.globalize_path("user://").replace("app_userdata/"+ProjectSettings.get_setting('application/config/name')+"/","twitch_chat")+"/"
 var token_file : String = "channel.dat"
 
-class Person:
-	
-	static func add_person():
-		"I am a person"
-
 onready var login_control : Control = $Login
 onready var chat_container : ScrollContainer = $ChatContainer/ChatScroller
 onready var chat : VBoxContainer = chat_container.get_node("Chat")
