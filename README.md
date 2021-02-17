@@ -1,3 +1,9 @@
+<p align="right">
+<a href="https://discord.gg/JzeFWFC3">
+<img src="https://github.com/fenix-hub/ColoredBadges/blob/master/svg/social/discord.svg" alt="react" style="vertical-align:top; margin:6px 4px">
+</a>
+</p>
+
 # godot-engine.editor-twitch-chat
 Integrate the chat of your Twitch Channel inside Godot Engine's editor! Enable it when you are doing a dev-stream or just want to check your Twitch chat while coding.
 
